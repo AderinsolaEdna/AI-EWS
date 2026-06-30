@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Early Warning System (EWS) Dashboard</title>
+    <!-- Google Fonts: Inter and Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0B0F19;
+            --bg-card: #151D30;
+            --bg-input: #1F2A45;
+            --border-color: #2D3D60;
+            
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            
+            --accent-blue: #3B82F6;
+            --accent-blue-hover: #2563EB;
+            
+            --color-low: #10B981;
+            --color-medium: #F59E0B;
+            --color-high: #EF4444;
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding-bottom: 60px;
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #111827 0%, #151D30 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-title-group h1 {
+            font-size: 24px;
+            background: linear-gradient(to right, #60A5FA, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .header-title-group p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-badge {
+            background-color: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60A5FA;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 30px auto 0;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* View Mode Toggles */
+        .mode-switcher {
+            display: flex;
+            background-color: var(--bg-input);
+            padding: 4px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mode-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+            background-color: var(--accent-blue);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        /* Filter Controls */
+        .filter-bar {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .filter-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .filter-input, .filter-select {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13.5px;
+            outline: none;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Directory Table CSS */
+        .table-wrapper {
+            overflow-x: auto;
+            flex-grow: 1;
+            min-height: 480px;
+        }
+
+        .directory-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13.5px;
+        }
+
+        .directory-table th, .directory-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .directory-table th {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+
+        .directory-table th:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .directory-table th .sort-indicator {
+            margin-left: 4px;
+            display: inline-block;
+            font-size: 10px;
+            color: var(--accent-blue);
+        }
+
+        .directory-table tr {
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .directory-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .directory-table tr.selected-student-row {
+            background-color: rgba(59, 130, 246, 0.08);
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .table-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .pill-high {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--color-high);
+            color: #F87171;
+        }
+
+        .pill-medium {
+            background-color: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--color-medium);
+            color: #FBBF24;
+        }
+
+        .pill-low {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--color-low);
+            color: #34D399;
+        }
+
+        /* Pagination style */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .pagination-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-pagination {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12.5px;
+            transition: var(--transition);
+        }
+
+        .btn-pagination:hover:not(:disabled) {
+            border-color: var(--accent-blue);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-pagination:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Profile Selection Buttons */
+        .profile-quickload {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-profile {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-profile:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-profile.active-high {
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: var(--color-high);
+            color: #F87171;
+        }
+
+        .btn-profile.active-med {
+            background-color: rgba(245, 158, 11, 0.15);
+            border-color: var(--color-medium);
+            color: #FBBF24;
+        }
+
+        .btn-profile.active-low {
+            background-color: rgba(16, 185, 129, 0.15);
+            border-color: var(--color-low);
+            color: #34D399;
+        }
+
+        /* Tabs inside Form & Details */
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            overflow-x: auto;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .tab-content.active {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, .input-group select {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-size: 13.5px;
+            font-family: inherit;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .submit-btn {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 12px 24px;
+            font-size: 14.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 20px;
+            width: 100%;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--accent-blue-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Result Panel Styling */
+        .result-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 20px;
+            text-align: center;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            color: var(--text-secondary);
+            height: 100%;
+            min-height: 400px;
+        }
+
+        .result-empty svg {
+            stroke: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            position: relative;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+        }
+
+        .gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            text-align: center;
+        }
+
+        .gauge-percent {
+            font-size: 34px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .gauge-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: -2px;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 14.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-align: center;
+            width: 160px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .tier-high {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 2px solid var(--color-high);
+            color: #F87171;
+        }
+
+        .tier-medium {
+            background-color: rgba(245, 158, 11, 0.15);
+            border: 2px solid var(--color-medium);
+            color: #FBBF24;
+        }
+
+        .tier-low {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--color-low);
+            color: #34D399;
+        }
+
+        /* Detail display lists */
+        .detail-card {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+
+        .detail-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .driver-tags {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .driver-tag {
+            background-color: var(--bg-input);
+            border-left: 4px solid var(--accent-blue);
+            padding: 8px 12px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .intervention-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 12px;
+        }
+
+        .intervention-text.high-risk {
+            border-color: var(--color-high);
+        }
+
+        .intervention-text.medium-risk {
+            border-color: var(--color-medium);
+        }
+
+        .intervention-text.low-risk {
+            border-color: var(--color-low);
+        }
+
+        /* Read-only features grid in detail view */
+        .student-attributes-viewer {
+            margin-top: 14px;
+        }
+
+        .attributes-grid {
+            font-size: 12.5px;
+        }
+
+        .attributes-grid.active {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .attribute-item {
+            background-color: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .attribute-label {
+            color: var(--text-secondary);
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .attribute-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Model Comparison Panel */
+        .metrics-container {
+            max-width: 1500px;
+            margin: 30px auto 0;
+            padding: 0 24px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13.5px;
+        }
+
+        .metrics-table th, .metrics-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metrics-table th {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .metrics-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .metrics-table tr.best-row {
+            background-color: rgba(59, 130, 246, 0.06);
+        }
+
+        .best-label {
+            background-color: var(--accent-blue);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        /* Visualisation Report Toggle */
+        .visualisation-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .toggle-btn {
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: fit-content;
+        }
+
+        .toggle-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .visualisation-image {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            display: none;
+        }
+
+        .visualisation-image.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-title-group">
+            <h1>Early Warning System (EWS) Predictor</h1>
+            <p>AI-DRIVEN DROPOUT PREDICTION & INTERVENTION FOR NIGERIAN UNIVERSITIES</p>
+        </div>
+        <div class="brand-badge">MVP</div>
+    </header>
+
+    <main class="container">
+        
+        <!-- Left Column: Input Form / Directory -->
+        <section class="card" id="left-card">
+            
+            <!-- View Mode Switcher -->
+            <div class="mode-switcher">
+                <button type="button" class="mode-btn active" id="btn-mode-directory" onclick="setViewMode('directory')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    Student Database Directory
+                </button>
+                <button type="button" class="mode-btn" id="btn-mode-manual" onclick="setViewMode('manual')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Predict Custom Student
+                </button>
+            </div>
+
+            <!-- VIEW 1: Directory Mode -->
+            <div id="view-directory">
+                <div class="card-header" style="border: none; margin-bottom: 10px; padding-bottom: 0;">
+                    <div>
+                        <h2 class="card-title">Student Records Database</h2>
+                        <p class="card-subtitle">Showing all student files in Nigerian contextual dataset</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" id="search-id" placeholder="Search Student ID (e.g. STU-0012)..." oninput="handleFilterChange()">
+                    <select class="filter-select" id="filter-tier" onchange="handleFilterChange()">
+                        <option value="All">All Risk Tiers</option>
+                        <option value="High & Medium Risk">High & Medium Risk Only</option>
+                        <option value="High Risk">High Risk Only</option>
+                        <option value="Medium Risk">Medium Risk Only</option>
+                        <option value="Low Risk">Low Risk Only</option>
+                    </select>
+                    <select class="filter-select" id="filter-faculty" onchange="handleFilterChange()">
+                        <option value="All">All Faculties</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Sciences">Sciences</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Social_Sciences">Social Sciences</option>
+                        <option value="Medicine">Medicine</option>
+                        <option value="Law">Law</option>
+                    </select>
+                </div>
+
+                <!-- Database Table -->
+                <div class="table-wrapper">
+                    <table class="directory-table">
+                        <thead>
+                            <tr>
+                                <th onclick="handleSort('student_id')">Student ID <span id="sort-student_id" class="sort-indicator"></span></th>
+                                <th onclick="handleSort('gender')">Gender <span id="sort-gender" class="sort-indicator"></span></th>
+                                <th onclick="handleSort('year_of_study')">Year <span id="sort-year_of_study" class="sort-indicator"></span></th>
+                                <th onclick="handleSort('cgpa')">CGPA <span id="sort-cgpa" class="sort-indicator"></span></th>
+                                <th onclick="handleSort('probability')">Risk Prob <span id="sort-probability" class="sort-indicator">▲</span></th>
+                                <th>Risk Tier</th>
+                            </tr>
+                        </thead>
+                        <tbody id="directory-table-body">
+                            <!-- Filled dynamically -->
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading students database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div id="pagination-text">Showing 0-0 of 0 student files</div>
+                    <div class="pagination-btn-group">
+                        <button class="btn-pagination" id="btn-prev" onclick="changePage(-1)" disabled>Previous</button>
+                        <button class="btn-pagination" id="btn-next" onclick="changePage(1)" disabled>Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: Manual Predictor Mode -->
+            <div id="view-manual" style="display: none;">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                            Student Profile Parameters
+                        </h2>
+                        <p class="card-subtitle">Configure attributes or load a template profile below</p>
+                    </div>
+                </div>
+
+                <!-- Profile Quick-Loaders -->
+                <div class="profile-quickload">
+                    <button type="button" class="btn-profile" id="load-high">
+                        <span style="color: var(--color-high)">●</span> Profile A: High Risk
+                    </button>
+                    <button type="button" class="btn-profile" id="load-medium">
+                        <span style="color: var(--color-medium)">●</span> Profile B: Medium Risk
+                    </button>
+                    <button type="button" class="btn-profile" id="load-low">
+                        <span style="color: var(--color-low)">●</span> Profile C: Low Risk
+                    </button>
+                </div>
+
+                <!-- Tab Headers -->
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchFormTab(event, 'academic-perf')">Academic Performance</button>
+                    <button class="tab-btn" onclick="switchFormTab(event, 'academic-bg')">Background & Admission</button>
+                    <button class="tab-btn" onclick="switchFormTab(event, 'financial-admin')">Financial & Support</button>
+                    <button class="tab-btn" onclick="switchFormTab(event, 'socio-demo')">Socio-Demographic</button>
+                </div>
+
+                <form id="student-form">
+                    
+                    <!-- Tab 1: Academic Performance -->
+                    <div id="academic-perf" class="tab-content active">
+                        <div class="input-group">
+                            <label for="CGPA_5point_Scale">CGPA (5-Point Scale)</label>
+                            <input type="number" step="0.01" min="0" max="5.0" id="CGPA_5point_Scale" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="GPA_Semester_1_5pt">GPA Semester 1</label>
+                            <input type="number" step="0.01" min="0" max="5.0" id="GPA_Semester_1_5pt" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="GPA_Semester_2_5pt">GPA Semester 2</label>
+                            <input type="number" step="0.01" min="0" max="5.0" id="GPA_Semester_2_5pt" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="GPA_Change">GPA Change (Sem2 - Sem1)</label>
+                            <input type="number" step="0.01" min="-5.0" max="5.0" id="GPA_Change" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Units_Registered_Semester_1">Registered Units Sem 1</label>
+                            <input type="number" id="Units_Registered_Semester_1" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Units_Passed_Semester_1">Passed Units Sem 1</label>
+                            <input type="number" id="Units_Passed_Semester_1" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Units_Registered_Semester_2">Registered Units Sem 2</label>
+                            <input type="number" id="Units_Registered_Semester_2" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Units_Passed_Semester_2">Passed Units Sem 2</label>
+                            <input type="number" id="Units_Passed_Semester_2" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Assessments_Sat_Semester_1">Assessments Sat Sem 1</label>
+                            <input type="number" id="Assessments_Sat_Semester_1" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Assessments_Sat_Semester_2">Assessments Sat Sem 2</label>
+                            <input type="number" id="Assessments_Sat_Semester_2" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Units_No_Assessment_Semester_1">Unassessed Units Sem 1</label>
+                            <input type="number" id="Units_No_Assessment_Semester_1" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Units_No_Assessment_Semester_2">Unassessed Units Sem 2</label>
+                            <input type="number" id="Units_No_Assessment_Semester_2" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Pass_Rate_Semester_1">Pass Rate Sem 1 (0 to 1)</label>
+                            <input type="number" step="0.01" min="0" max="1.0" id="Pass_Rate_Semester_1" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Pass_Rate_Semester_2">Pass Rate Sem 2 (0 to 1)</label>
+                            <input type="number" step="0.01" min="0" max="1.0" id="Pass_Rate_Semester_2" required>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Academic Background & Admission -->
+                    <div id="academic-bg" class="tab-content">
+                        <div class="input-group">
+                            <label for="Faculty">Faculty</label>
+                            <select id="Faculty" required>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Sciences">Sciences</option>
+                                <option value="Arts">Arts</option>
+                                <option value="Social_Sciences">Social Sciences</option>
+                                <option value="Medicine">Medicine</option>
+                                <option value="Law">Law</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Year_of_Study">Year of Study (1 to 5)</label>
+                            <input type="number" min="1" max="5" id="Year_of_Study" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="UTME_PostUME_Score">UTME/Post-UME Score</label>
+                            <input type="number" step="0.1" id="UTME_PostUME_Score" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Secondary_School_Exit_Grade">Secondary Exit Grade</label>
+                            <input type="number" step="0.1" id="Secondary_School_Exit_Grade" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Study_Mode">Study Mode</label>
+                            <select id="Study_Mode" required>
+                                <option value="1">Full-Time (1)</option>
+                                <option value="0">Part-Time (0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Financial & Support -->
+                    <div id="financial-admin" class="tab-content">
+                        <div class="input-group">
+                            <label for="School_Fees_Payment_Status">Fees Payment Status</label>
+                            <select id="School_Fees_Payment_Status" required>
+                                <option value="1">Paid (1)</option>
+                                <option value="0">Unpaid (0)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Fee_Arrears_Status">Fee Arrears Status</label>
+                            <select id="Fee_Arrears_Status" required>
+                                <option value="0">No Arrears (0)</option>
+                                <option value="1">Has Arrears (1)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Bursary_Scholarship_Status">Bursary/Scholarship</label>
+                            <select id="Bursary_Scholarship_Status" required>
+                                <option value="0">None (0)</option>
+                                <option value="1">Recipient (1)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Non_Resident_Student">Residency Status</label>
+                            <select id="Non_Resident_Student" required>
+                                <option value="0">On-Campus Resident (0)</option>
+                                <option value="1">Off-Campus Commuter (1)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Hostel_Residency">Hostel Allocation</label>
+                            <select id="Hostel_Residency" required>
+                                <option value="1">Allocated (1)</option>
+                                <option value="0">Not Allocated (0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Socio-Demographic -->
+                    <div id="socio-demo" class="tab-content">
+                        <div class="input-group">
+                            <label for="Gender">Gender</label>
+                            <select id="Gender" required>
+                                <option value="0">Female (0)</option>
+                                <option value="1">Male (1)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Age_at_Matriculation">Age at Matriculation</label>
+                            <input type="number" min="15" max="80" id="Age_at_Matriculation" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="First_Generation_Student">First Generation Student</label>
+                            <select id="First_Generation_Student" required>
+                                <option value="1">Yes (1)</option>
+                                <option value="0">No (0)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Marital_Status_Binary">Marital Status</label>
+                            <select id="Marital_Status_Binary" required>
+                                <option value="0">Single (0)</option>
+                                <option value="1">Married/Other (1)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Special_Needs_Status">Special Needs Status</label>
+                            <select id="Special_Needs_Status" required>
+                                <option value="0">No (0)</option>
+                                <option value="1">Yes (1)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="Mother_Education_Level">Mother Education (Code)</label>
+                            <input type="number" id="Mother_Education_Level" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Father_Education_Level">Father Education (Code)</label>
+                            <input type="number" id="Father_Education_Level" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Mother_Occupation">Mother Occupation (Code)</label>
+                            <input type="number" id="Mother_Occupation" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="Father_Occupation">Father Occupation (Code)</label>
+                            <input type="number" id="Father_Occupation" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Run Risk Inference Engine
+                    </button>
+                </form>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Results & Selected Student Details View -->
+        <section class="card" id="right-card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title" id="details-header-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+                        Student Risk Profile
+                    </h2>
+                    <p class="card-subtitle" id="details-header-subtitle">Select a student from the directory to review risk factors</p>
+                </div>
+            </div>
+
+            <!-- Detail view display -->
+            <div id="result-display" class="result-panel" style="display: none;">
+                
+                <!-- Radial Progress Ring -->
+                <div class="gauge-container">
+                    <svg class="progress-ring" width="200" height="200">
+                        <circle class="progress-ring__background" stroke="#1F2A45" stroke-width="12" fill="transparent" r="70" cx="100" cy="100"/>
+                        <circle class="progress-ring__circle" id="risk-circle" stroke="var(--accent-blue)" stroke-width="12" fill="transparent" r="70" cx="100" cy="100"/>
+                    </svg>
+                    <div class="gauge-text">
+                        <div class="gauge-percent" id="risk-prob">0.0%</div>
+                        <div class="gauge-label">Probability</div>
+                    </div>
+                    <div class="tier-badge" id="risk-tier">Low Risk</div>
+                </div>
+
+                <!-- Drivers List -->
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Dominant Risk Drivers
+                    </div>
+                    <div class="driver-tags" id="risk-drivers">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Intervention -->
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        Table 3.3 Actionable Intervention
+                    </div>
+                    <div class="intervention-text" id="action-intervention">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Read-Only Detailed Attributes (Tabbed) -->
+                <div class="student-attributes-viewer">
+                    <div class="detail-card-title" style="margin-bottom: 6px;">
+                        Student Profile Values
+                    </div>
+                    
+                    <div class="tabs-header" style="margin-bottom: 12px; gap: 2px;">
+                        <button class="tab-btn active" style="font-size: 11.5px; padding: 6px 10px;" onclick="switchDetailTab(event, 'det-academic')">Academic</button>
+                        <button class="tab-btn" style="font-size: 11.5px; padding: 6px 10px;" onclick="switchDetailTab(event, 'det-background')">Background</button>
+                        <button class="tab-btn" style="font-size: 11.5px; padding: 6px 10px;" onclick="switchDetailTab(event, 'det-financial')">Financial</button>
+                        <button class="tab-btn" style="font-size: 11.5px; padding: 6px 10px;" onclick="switchDetailTab(event, 'det-socio')">Socio-Dem</button>
+                    </div>
+
+                    <!-- Academic Tab Content -->
+                    <div id="det-academic" class="tab-content active attributes-grid">
+                        <div class="attribute-item"><span class="attribute-label">CGPA</span><span class="attribute-value" id="val-CGPA_5point_Scale">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">GPA Semester 1</span><span class="attribute-value" id="val-GPA_Semester_1_5pt">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">GPA Semester 2</span><span class="attribute-value" id="val-GPA_Semester_2_5pt">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">GPA Change</span><span class="attribute-value" id="val-GPA_Change">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Reg Units S1</span><span class="attribute-value" id="val-Units_Registered_Semester_1">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Pass Units S1</span><span class="attribute-value" id="val-Units_Passed_Semester_1">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Pass Rate S1</span><span class="attribute-value" id="val-Pass_Rate_Semester_1">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Reg Units S2</span><span class="attribute-value" id="val-Units_Registered_Semester_2">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Pass Units S2</span><span class="attribute-value" id="val-Units_Passed_Semester_2">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Pass Rate S2</span><span class="attribute-value" id="val-Pass_Rate_Semester_2">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Assessments S1</span><span class="attribute-value" id="val-Assessments_Sat_Semester_1">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Assessments S2</span><span class="attribute-value" id="val-Assessments_Sat_Semester_2">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Unassessed S1</span><span class="attribute-value" id="val-Units_No_Assessment_Semester_1">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Unassessed S2</span><span class="attribute-value" id="val-Units_No_Assessment_Semester_2">-</span></div>
+                    </div>
+
+                    <!-- Background Tab Content -->
+                    <div id="det-background" class="tab-content attributes-grid">
+                        <div class="attribute-item"><span class="attribute-label">Faculty</span><span class="attribute-value" id="val-Faculty">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Year of Study</span><span class="attribute-value" id="val-Year_of_Study">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">UTME Score</span><span class="attribute-value" id="val-UTME_PostUME_Score">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Secondary Grade</span><span class="attribute-value" id="val-Secondary_School_Exit_Grade">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Study Mode</span><span class="attribute-value" id="val-Study_Mode">-</span></div>
+                    </div>
+
+                    <!-- Financial Tab Content -->
+                    <div id="det-financial" class="tab-content attributes-grid">
+                        <div class="attribute-item"><span class="attribute-label">Payment Status</span><span class="attribute-value" id="val-School_Fees_Payment_Status">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Arrears</span><span class="attribute-value" id="val-Fee_Arrears_Status">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Bursary Recipient</span><span class="attribute-value" id="val-Bursary_Scholarship_Status">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Hostel Allocation</span><span class="attribute-value" id="val-Hostel_Residency">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Residency Status</span><span class="attribute-value" id="val-Non_Resident_Student">-</span></div>
+                    </div>
+
+                    <!-- Socio Tab Content -->
+                    <div id="det-socio" class="tab-content attributes-grid">
+                        <div class="attribute-item"><span class="attribute-label">Gender</span><span class="attribute-value" id="val-Gender">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Age Matriculation</span><span class="attribute-value" id="val-Age_at_Matriculation">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">First Gen Student</span><span class="attribute-value" id="val-First_Generation_Student">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Marital Status</span><span class="attribute-value" id="val-Marital_Status_Binary">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Special Needs</span><span class="attribute-value" id="val-Special_Needs_Status">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Mother Education</span><span class="attribute-value" id="val-Mother_Education_Level">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Father Education</span><span class="attribute-value" id="val-Father_Education_Level">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Mother Occupation</span><span class="attribute-value" id="val-Mother_Occupation">-</span></div>
+                        <div class="attribute-item"><span class="attribute-label">Father Occupation</span><span class="attribute-value" id="val-Father_Occupation">-</span></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Empty State -->
+            <div id="result-empty" class="result-empty">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A3.318 3.318 0 0111.5 22.5a3.318 3.318 0 01-3.5-3.263v-.11m0-10.484a3.75 3.75 0 117.5 0M4.121 17.804A13.937 13.937 0 0111.5 16c2.63 0 5.105.729 7.228 2.004M15 7.5a3 3 0 11-6 0 3 3 0 016 0zM3.361 17.06A4.292 4.292 0 000 21.25c0 .414.336.75.75.75h16.5a.75.75 0 00.75-.75 4.292 4.292 0 00-3.361-4.19M3.361 17.06a8.966 8.966 0 014.639-1.31M3.361 17.06L3.36 17c0-1.113.286-2.16.786-3.07m0 0A4.286 4.286 0 016 11.25h1a4.286 4.286 0 011.574 3.07M8 19v.111"></path></svg>
+                <h3>No Profile Selected</h3>
+                <p style="font-size: 13px; max-width: 250px; margin-top: 6px;">Select a student record from the directory, or switch to manual input to run custom predictions.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Bottom Full-Width Section: Model Performance Metrics -->
+    <section class="metrics-container">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Model Execution Benchmarks (Stratified 10-Fold CV)
+                    </h2>
+                    <p class="card-subtitle">Comparative evaluation metrics computed strictly on held-out test data</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Model Name</th>
+                            <th>Accuracy</th>
+                            <th>Precision (Dropout)</th>
+                            <th>Recall (Dropout)</th>
+                            <th>F1-Score (Dropout)</th>
+                            <th>ROC-AUC Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-table-body">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Visualisation Toggle section -->
+            <div class="visualisation-section">
+                <button type="button" class="toggle-btn" onclick="toggleReportImage()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Toggle Evaluation Visualisation Report
+                </button>
+                <img id="report-img" src="/reports/ews_evaluation_report.png" alt="Early Warning System Model Evaluation Visualisation" class="visualisation-image">
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        // MAPPINGS FOR CATEGORICAL CODES
+        const educationMap = {
+            1: "Secondary Education (12th Year)",
+            2: "Higher Education - Bachelor's Degree",
+            3: "Higher Education - Degree",
+            4: "Higher Education - Master's",
+            5: "Higher Education - Doctorate",
+            6: "Higher Education - Unfinished",
+            7: "Secondary Education - Unfinished",
+            8: "Secondary Education - Unfinished",
+            9: "Basic Education (7th Year)",
+            10: "Secondary Education - Unfinished",
+            11: "Secondary Education (Old System)",
+            12: "Secondary Education (Old System)",
+            13: "Secondary Education (Complementary)",
+            14: "Basic Education 3rd Cycle (9th-11th Year)",
+            18: "Can't read or write",
+            19: "Basic Education 3rd Cycle (9th-11th Year)",
+            22: "Unknown",
+            26: "Basic Education 1st Cycle (4th-5th Year)",
+            27: "Basic Education 1st Cycle (4th-5th Year)",
+            29: "Basic Education 1st Cycle (4th-5th Year)",
+            30: "Basic Education 1st Cycle (4th-5th Year)",
+            34: "Basic Education 1st Cycle (4th-5th Year)",
+            35: "Basic Education 1st Cycle (4th-5th Year)",
+            36: "Basic Education 1st Cycle (4th-5th Year)",
+            37: "Basic Education 1st Cycle (4th-5th Year)",
+            38: "Basic Education 2nd Cycle (6th-8th Year)",
+            39: "Technological Specialization Course",
+            40: "Higher Education - Bachelor's (1st Cycle)",
+            41: "Higher Education - Specialized Course",
+            42: "Higher Education - Technical Course",
+            43: "Higher Education - Master's (2nd Cycle)",
+            44: "Higher Education - Doctorate (3rd Cycle)"
+        };
+
+        const occupationMap = {
+            0: "Student",
+            1: "Legislators, Senior Officials and Managers",
+            2: "Intellectual and Scientific Specialists",
+            3: "Intermediate Level Technicians and Professions",
+            4: "Administrative Staff",
+            5: "Personal Services, Security and Sales Workers",
+            6: "Skilled Agricultural, Forestry and Fishery Workers",
+            7: "Skilled Workers in Industry, Construction and Craftsmen",
+            8: "Installation and Machine Operators and Assemblers",
+            9: "Unskilled Workers",
+            10: "Armed Forces Occupations",
+            90: "Other Situation",
+            99: "Unknown",
+            122: "Health Professionals",
+            123: "Teachers",
+            125: "ICT Specialists",
+            131: "Science & Engineering Technicians",
+            132: "Health Technicians & Professionals",
+            134: "Legal, Social, Cultural & Sports Technicians",
+            141: "Office Workers, Secretaries & Typists",
+            143: "Financial & Statistical Registry Operators",
+            144: "Other Administrative Support Staff",
+            151: "Personal Service Workers",
+            152: "Sellers",
+            153: "Personal Care Workers",
+            171: "Skilled Construction Workers",
+            173: "Printing, Precision & Artisan Workers",
+            175: "Food Processing, Woodworking & Craft Workers",
+            191: "Cleaning Workers",
+            192: "Unskilled Agricultural & Fishery Workers",
+            193: "Unskilled Extractive, Construction & Transport Workers",
+            194: "Meal Preparation Assistants"
+        };
+
+        // Helper to format raw attribute values for human-readable display
+        function formatAttributeValue(key, val) {
+            if (key === "Gender") {
+                return val === 1 ? "Male" : "Female";
+            }
+            if (key === "Study_Mode") {
+                return val === 1 ? "Full-Time" : "Part-Time";
+            }
+            if (key === "School_Fees_Payment_Status") {
+                return val === 1 ? "Paid" : "Unpaid";
+            }
+            if (key === "Fee_Arrears_Status") {
+                return val === 1 ? "Has Arrears" : "No Arrears";
+            }
+            if (key === "Bursary_Scholarship_Status") {
+                return val === 1 ? "Recipient" : "None";
+            }
+            if (key === "Hostel_Residency") {
+                return val === 1 ? "Allocated" : "Not Allocated";
+            }
+            if (key === "Non_Resident_Student") {
+                return val === 1 ? "Off-Campus Commuter" : "On-Campus Resident";
+            }
+            if (key === "First_Generation_Student") {
+                return val === 1 ? "Yes" : "No";
+            }
+            if (key === "Marital_Status_Binary") {
+                return val === 1 ? "Married / Other" : "Single";
+            }
+            if (key === "Special_Needs_Status") {
+                return val === 1 ? "Yes" : "No";
+            }
+            if (key === "Faculty") {
+                return val.replace(/_/g, ' ');
+            }
+            if (key === "Mother_Education_Level" || key === "Father_Education_Level") {
+                return educationMap[val] || `Education Level ${val}`;
+            }
+            if (key === "Mother_Occupation" || key === "Father_Occupation") {
+                return occupationMap[val] || `Occupation ${val}`;
+            }
+            if (typeof val === 'number') {
+                if (key.includes('GPA') || key.includes('CGPA')) {
+                    return val.toFixed(2);
+                }
+                if (key.includes('Rate')) {
+                    return (val * 100).toFixed(0) + '%';
+                }
+            }
+            return val;
+        }
+
+        // GLOBAL CLIENT STATE
+        let currentMode = 'directory'; // 'directory' or 'manual'
+        let currentStudentId = null;   // currently selected student ID in list view
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        
+        // Filter states
+        let filterSearch = '';
+        let filterTier = 'All';
+        let filterFaculty = 'All';
+        
+        // Sorting state
+        let currentSortBy = 'probability'; // Default sorting by risk probability
+        let currentSortOrder = 'desc';     // Default sorting descending (worst student first!)
+
+        // Switch View Modes (Database vs Manual form)
+        function setViewMode(mode) {
+            currentMode = mode;
+            
+            // Switch tabs styling
+            document.getElementById("btn-mode-directory").classList.toggle("active", mode === 'directory');
+            document.getElementById("btn-mode-manual").classList.toggle("active", mode === 'manual');
+            
+            // Switch view displays
+            document.getElementById("view-directory").style.display = mode === 'directory' ? 'block' : 'none';
+            document.getElementById("view-manual").style.display = mode === 'manual' ? 'block' : 'none';
+            
+            // Reset right panel state if switching
+            if (mode === 'manual') {
+                // Set default empty state for details panel unless we predict custom profile
+                document.getElementById("result-display").style.display = "none";
+                document.getElementById("result-empty").style.display = "flex";
+                document.getElementById("details-header-title").innerHTML = `
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+                    Custom Profile Inference
+                `;
+                document.getElementById("details-header-subtitle").innerText = "Enter custom values on the form and click Run Inference";
+                // Unselect directory rows
+                const rows = document.querySelectorAll(".student-row");
+                rows.forEach(r => r.classList.remove("selected-student-row"));
+            } else {
+                // If directory is selected, restore selected student or empty
+                if (currentStudentId) {
+                    loadStudentDetail(currentStudentId);
+                } else {
+                    document.getElementById("result-display").style.display = "none";
+                    document.getElementById("result-empty").style.display = "flex";
+                    document.getElementById("details-header-title").innerHTML = `
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+                        Student Risk Profile
+                    `;
+                    document.getElementById("details-header-subtitle").innerText = "Select a student from the directory to review risk factors";
+                }
+            }
+        }
+
+        // Tab switching logic for form
+        function switchFormTab(evt, tabId) {
+            const contents = document.querySelectorAll("#view-manual .tab-content");
+            contents.forEach(c => c.classList.remove("active"));
+            
+            const buttons = document.querySelectorAll("#view-manual .tab-btn");
+            buttons.forEach(b => b.classList.remove("active"));
+            
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // Tab switching logic for details attributes viewer
+        function switchDetailTab(evt, tabId) {
+            const contents = document.querySelectorAll(".student-attributes-viewer .tab-content");
+            contents.forEach(c => c.classList.remove("active"));
+            
+            const buttons = document.querySelectorAll(".student-attributes-viewer .tab-btn");
+            buttons.forEach(b => b.classList.remove("active"));
+            
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // Setup circular progress ring math
+        const circle = document.getElementById("risk-circle");
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100 * circumference);
+            circle.style.strokeDashoffset = offset;
+        }
+
+        // Toggle evaluation dashboard image
+        function toggleReportImage() {
+            const img = document.getElementById("report-img");
+            img.classList.toggle("visible");
+        }
+
+        // Fetch students list from server
+        async function fetchStudents() {
+            const tbody = document.getElementById("directory-table-body");
+            
+            // Build query params
+            const params = new URLSearchParams({
+                search: filterSearch,
+                risk_tier: filterTier,
+                faculty: filterFaculty,
+                sort_by: currentSortBy,
+                sort_order: currentSortOrder,
+                page: currentPage,
+                limit: itemsPerPage
+            });
+
+            try {
+                const response = await fetch(`/api/students?${params.toString()}`);
+                const data = await response.json();
+                
+                tbody.innerHTML = "";
+                
+                if (!data.students || data.students.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                No student records match the filters.
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById("btn-prev").disabled = true;
+                    document.getElementById("btn-next").disabled = true;
+                    document.getElementById("pagination-text").innerText = "Showing 0-0 of 0 student files";
+                    return;
+                }
+
+                // Render student rows
+                data.students.forEach(student => {
+                    const tr = document.createElement("tr");
+                    tr.className = "student-row";
+                    tr.id = `row-${student.student_id}`;
+                    if (currentStudentId === student.student_id) {
+                        tr.classList.add("selected-student-row");
+                    }
+                    
+                    tr.onclick = () => selectStudent(student.student_id);
+
+                    // Risk pill color
+                    let pillClass = "pill-low";
+                    if (student.risk_tier === "High Risk") {
+                        pillClass = "pill-high";
+                    } else if (student.risk_tier === "Medium Risk") {
+                        pillClass = "pill-medium";
+                    }
+
+                    tr.innerHTML = `
+                        <td style="font-weight: 600; color: #60A5FA;">${student.student_id}</td>
+                        <td>${student.gender}</td>
+                        <td>Year ${student.year_of_study}</td>
+                        <td>${student.cgpa.toFixed(2)}</td>
+                        <td style="font-weight: 700;">${(student.risk_probability * 100).toFixed(1)}%</td>
+                        <td><span class="table-pill ${pillClass}">${student.risk_tier}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Update pagination controls
+                const startIdx = (data.page - 1) * data.limit + 1;
+                const endIdx = Math.min(startIdx + data.students.length - 1, data.total);
+                document.getElementById("pagination-text").innerText = `Showing ${startIdx}-${endIdx} of ${data.total} student files`;
+                
+                document.getElementById("btn-prev").disabled = (data.page <= 1);
+                document.getElementById("btn-next").disabled = (data.page >= data.pages);
+
+            } catch (err) {
+                console.error("Could not fetch students list:", err);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--color-high);">
+                            Failed to connect to API server. Ensure <code>server.py</code> is running.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Selection trigger
+        function selectStudent(studentId) {
+            // Remove previous active selection
+            const rows = document.querySelectorAll(".student-row");
+            rows.forEach(r => r.classList.remove("selected-student-row"));
+            
+            // Add selection styling to target row
+            const tr = document.getElementById(`row-${studentId}`);
+            if (tr) tr.classList.add("selected-student-row");
+            
+            currentStudentId = studentId;
+            loadStudentDetail(studentId);
+        }
+
+        // Fetch detailed profile for selected student
+        async function loadStudentDetail(studentId) {
+            try {
+                const response = await fetch(`/api/student-detail?id=${studentId}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert("Error loading details: " + data.error);
+                    return;
+                }
+
+                // Render detail panel header
+                document.getElementById("details-header-title").innerHTML = `
+                    <span style="color: #60A5FA; font-weight: 700;">${data.student_id}</span>'s Risk Profile
+                `;
+                document.getElementById("details-header-subtitle").innerText = `Detailed prognostic factors | Faculty of ${data.features.Faculty.replace(/_/g, ' ')}`;
+
+                // Load predictions results
+                document.getElementById("result-empty").style.display = "none";
+                document.getElementById("result-display").style.display = "flex";
+
+                // Probability radial update
+                const prob = data.prediction.probability;
+                const percent = prob * 100;
+                document.getElementById("risk-prob").innerText = `${percent.toFixed(1)}%`;
+                
+                const circleElement = document.getElementById("risk-circle");
+                
+                // Color ring based on risk tier
+                if (data.prediction.risk_tier === "High Risk") {
+                    circleElement.style.stroke = "var(--color-high)";
+                    document.getElementById("risk-tier").className = "tier-badge tier-high";
+                    document.getElementById("action-intervention").className = "intervention-text high-risk";
+                } else if (data.prediction.risk_tier === "Medium Risk") {
+                    circleElement.style.stroke = "var(--color-medium)";
+                    document.getElementById("risk-tier").className = "tier-badge tier-medium";
+                    document.getElementById("action-intervention").className = "intervention-text medium-risk";
+                } else {
+                    circleElement.style.stroke = "var(--color-low)";
+                    document.getElementById("risk-tier").className = "tier-badge tier-low";
+                    document.getElementById("action-intervention").className = "intervention-text low-risk";
+                }
+                
+                document.getElementById("risk-tier").innerText = data.prediction.risk_tier;
+                setProgress(percent);
+
+                // Drivers list
+                const driversContainer = document.getElementById("risk-drivers");
+                driversContainer.innerHTML = "";
+                data.prediction.top_drivers.forEach(driver => {
+                    const div = document.createElement("div");
+                    div.className = "driver-tag";
+                    const label = driver.replace(/_/g, " ");
+                    div.innerText = label;
+                    driversContainer.appendChild(div);
+                });
+
+                // Intervention
+                document.getElementById("action-intervention").innerText = data.prediction.actionable_intervention;
+
+                // Load all specific student attributes into read-only display
+                for (const key in data.features) {
+                    const el = document.getElementById(`val-${key}`);
+                    if (el) {
+                        el.innerText = formatAttributeValue(key, data.features[key]);
+                    }
+                }
+
+            } catch (err) {
+                console.error("Could not fetch student detail:", err);
+            }
+        }
+
+        // Sort toggle handler
+        function handleSort(column) {
+            // Update sort arrows
+            const indicators = document.querySelectorAll(".sort-indicator");
+            indicators.forEach(ind => ind.innerText = "");
+
+            if (currentSortBy === column) {
+                currentSortOrder = (currentSortOrder === 'asc') ? 'desc' : 'asc';
+            } else {
+                currentSortBy = column;
+                currentSortOrder = 'desc'; // Default to desc for risk probability, asc for others
+                if (column === 'student_id' || column === 'cgpa') {
+                    currentSortOrder = 'asc';
+                }
+            }
+            
+            const indicatorEl = document.getElementById(`sort-${column}`);
+            if (indicatorEl) {
+                indicatorEl.innerText = (currentSortOrder === 'asc') ? "▲" : "▼";
+            }
+            
+            currentPage = 1; // Reset to page 1
+            fetchStudents();
+        }
+
+        // Filter triggers
+        function handleFilterChange() {
+            filterSearch = document.getElementById("search-id").value;
+            filterTier = document.getElementById("filter-tier").value;
+            filterFaculty = document.getElementById("filter-faculty").value;
+            
+            currentPage = 1; // Reset page
+            fetchStudents();
+        }
+
+        // Change Pagination page
+        function changePage(delta) {
+            currentPage += delta;
+            fetchStudents();
+        }
+
+        // Archetypal Profile data matching the demo profiles in python (for Manual Prediction)
+        const profilesData = {
+            high: {
+                "Gender": 1, "Age_at_Matriculation": 21, "Marital_Status_Binary": 1,
+                "Special_Needs_Status": 0, "Mother_Education_Level": 1, "Father_Education_Level": 1,
+                "Mother_Occupation": 2, "Father_Occupation": 2, "First_Generation_Student": 1,
+                "UTME_PostUME_Score": 100.0, "Secondary_School_Exit_Grade": 102.0, "Study_Mode": 1,
+                "Faculty": "Engineering", "Year_of_Study": 2, "Non_Resident_Student": 1,
+                "Hostel_Residency": 0, "School_Fees_Payment_Status": 0, "Fee_Arrears_Status": 1,
+                "Bursary_Scholarship_Status": 0, "Units_Registered_Semester_1": 6, "Units_Passed_Semester_1": 1,
+                "Assessments_Sat_Semester_1": 2, "Units_No_Assessment_Semester_1": 4, "GPA_Semester_1_5pt": 0.5,
+                "Pass_Rate_Semester_1": 0.16, "Units_Registered_Semester_2": 6, "Units_Passed_Semester_2": 0,
+                "Assessments_Sat_Semester_2": 1, "Units_No_Assessment_Semester_2": 5, "GPA_Semester_2_5pt": 0.0,
+                "Pass_Rate_Semester_2": 0.0, "CGPA_5point_Scale": 0.25, "GPA_Change": -0.5
+            },
+            medium: {
+                "Gender": 0, "Age_at_Matriculation": 19, "Marital_Status_Binary": 0,
+                "Special_Needs_Status": 0, "Mother_Education_Level": 3, "Father_Education_Level": 3,
+                "Mother_Occupation": 4, "Father_Occupation": 5, "First_Generation_Student": 0,
+                "UTME_PostUME_Score": 125.0, "Secondary_School_Exit_Grade": 130.0, "Study_Mode": 1,
+                "Faculty": "Social_Sciences", "Year_of_Study": 3, "Non_Resident_Student": 1,
+                "Hostel_Residency": 0, "School_Fees_Payment_Status": 1, "Fee_Arrears_Status": 0,
+                "Bursary_Scholarship_Status": 0, "Units_Registered_Semester_1": 6, "Units_Passed_Semester_1": 4,
+                "Assessments_Sat_Semester_1": 5, "Units_No_Assessment_Semester_1": 1, "GPA_Semester_1_5pt": 2.2,
+                "Pass_Rate_Semester_1": 0.66, "Units_Registered_Semester_2": 6, "Units_Passed_Semester_2": 3,
+                "Assessments_Sat_Semester_2": 5, "Units_No_Assessment_Semester_2": 1, "GPA_Semester_2_5pt": 1.8,
+                "Pass_Rate_Semester_2": 0.50, "CGPA_5point_Scale": 2.0, "GPA_Change": -0.4
+            },
+            low: {
+                "Gender": 0, "Age_at_Matriculation": 18, "Marital_Status_Binary": 0,
+                "Special_Needs_Status": 0, "Mother_Education_Level": 12, "Father_Education_Level": 14,
+                "Mother_Occupation": 9, "Father_Occupation": 10, "First_Generation_Student": 0,
+                "UTME_PostUME_Score": 178.0, "Secondary_School_Exit_Grade": 180.0, "Study_Mode": 1,
+                "Faculty": "Sciences", "Year_of_Study": 4, "Non_Resident_Student": 0,
+                "Hostel_Residency": 1, "School_Fees_Payment_Status": 1, "Fee_Arrears_Status": 0,
+                "Bursary_Scholarship_Status": 1, "Units_Registered_Semester_1": 7, "Units_Passed_Semester_1": 7,
+                "Assessments_Sat_Semester_1": 7, "Units_No_Assessment_Semester_1": 0, "GPA_Semester_1_5pt": 4.5,
+                "Pass_Rate_Semester_1": 1.0, "Units_Registered_Semester_2": 7, "Units_Passed_Semester_2": 7,
+                "Assessments_Sat_Semester_2": 7, "Units_No_Assessment_Semester_2": 0, "GPA_Semester_2_5pt": 4.6,
+                "Pass_Rate_Semester_2": 1.0, "CGPA_5point_Scale": 4.55, "GPA_Change": 0.1
+            }
+        };
+
+        // Populate fields function for custom form
+        function loadProfile(profileName) {
+            const data = profilesData[profileName];
+            
+            // Remove active classes
+            document.getElementById("load-high").className = "btn-profile";
+            document.getElementById("load-medium").className = "btn-profile";
+            document.getElementById("load-low").className = "btn-profile";
+
+            // Add correct active class
+            if (profileName === 'high') document.getElementById("load-high").classList.add("active-high");
+            if (profileName === 'medium') document.getElementById("load-medium").classList.add("active-medium");
+            if (profileName === 'low') document.getElementById("load-low").classList.add("active-low");
+
+            for (const key in data) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = data[key];
+                }
+            }
+        }
+
+        // Event listeners for template profile loading
+        document.getElementById("load-high").addEventListener("click", () => loadProfile('high'));
+        document.getElementById("load-medium").addEventListener("click", () => loadProfile('medium'));
+        document.getElementById("load-low").addEventListener("click", () => loadProfile('low'));
+
+        // Load Low Risk profile by default in the form
+        loadProfile('low');
+
+        // Form submission prediction request (for manual input mode)
+        document.getElementById("student-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            // Collect form fields
+            const data = {};
+            const elements = document.getElementById("student-form").elements;
+            
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i];
+                if (el.id) {
+                    if (el.tagName === 'SELECT') {
+                        if (el.id === "Faculty") {
+                            data[el.id] = el.value;
+                        } else {
+                            data[el.id] = parseInt(el.value);
+                        }
+                    } else if (el.type === 'number') {
+                        data[el.id] = parseFloat(el.value);
+                    } else {
+                        data[el.id] = el.value;
+                    }
+                }
+            }
+
+            try {
+                const response = await fetch("/api/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert("Error from prediction engine: " + result.error);
+                    return;
+                }
+
+                // Render Results in details panel
+                document.getElementById("details-header-title").innerHTML = `
+                    <span style="color: var(--accent-blue); font-weight: 700;">Custom Student</span> Prediction
+                `;
+                document.getElementById("details-header-subtitle").innerText = `Real-time user evaluation profile | Faculty of ${data.Faculty}`;
+
+                document.getElementById("result-empty").style.display = "none";
+                document.getElementById("result-display").style.display = "flex";
+
+                // Probability radial update
+                const prob = result.probability;
+                const percent = prob * 100;
+                document.getElementById("risk-prob").innerText = `${percent.toFixed(1)}%`;
+                
+                const circleElement = document.getElementById("risk-circle");
+                
+                // Color ring based on risk tier
+                if (result.risk_tier === "High Risk") {
+                    circleElement.style.stroke = "var(--color-high)";
+                    document.getElementById("risk-tier").className = "tier-badge tier-high";
+                    document.getElementById("action-intervention").className = "intervention-text high-risk";
+                } else if (result.risk_tier === "Medium Risk") {
+                    circleElement.style.stroke = "var(--color-medium)";
+                    document.getElementById("risk-tier").className = "tier-badge tier-medium";
+                    document.getElementById("action-intervention").className = "intervention-text medium-risk";
+                } else {
+                    circleElement.style.stroke = "var(--color-low)";
+                    document.getElementById("risk-tier").className = "tier-badge tier-low";
+                    document.getElementById("action-intervention").className = "intervention-text low-risk";
+                }
+                
+                document.getElementById("risk-tier").innerText = result.risk_tier;
+                setProgress(percent);
+
+                // Drivers list
+                const driversContainer = document.getElementById("risk-drivers");
+                driversContainer.innerHTML = "";
+                result.top_drivers.forEach(driver => {
+                    const div = document.createElement("div");
+                    div.className = "driver-tag";
+                    const label = driver.replace(/_/g, " ");
+                    div.innerText = label;
+                    driversContainer.appendChild(div);
+                });
+
+                // Intervention
+                document.getElementById("action-intervention").innerText = result.actionable_intervention;
+
+                // Load form values to the read-only details attributes grid so the user can verify
+                for (const key in data) {
+                    const el = document.getElementById(`val-${key}`);
+                    if (el) {
+                        let val = data[key];
+                        if (key === "Gender") {
+                            val = val === 1 ? "Male" : "Female";
+                        } else if (key === "Study_Mode") {
+                            val = val === 1 ? "Full-Time" : "Part-Time";
+                        } else if (key === "School_Fees_Payment_Status") {
+                            val = val === 1 ? "Paid" : "Unpaid";
+                        } else if (key === "Fee_Arrears_Status") {
+                            val = val === 1 ? "Has Arrears" : "No Arrears";
+                        } else if (key === "Bursary_Scholarship_Status") {
+                            val = val === 1 ? "Recipient" : "None";
+                        } else if (key === "Hostel_Residency") {
+                            val = val === 1 ? "Allocated" : "Not Allocated";
+                        } else if (key === "Non_Resident_Student") {
+                            val = val === 1 ? "Off-Campus Commuter" : "On-Campus Resident";
+                        } else if (key === "First_Generation_Student") {
+                            val = val === 1 ? "Yes" : "No";
+                        } else if (key === "Marital_Status_Binary") {
+                            val = val === 1 ? "Married / Other" : "Single";
+                        } else if (key === "Special_Needs_Status") {
+                            val = val === 1 ? "Yes" : "No";
+                        } else if (key === "Faculty") {
+                            val = val.replace(/_/g, ' ');
+                        } else if (typeof val === 'number') {
+                            if (key.includes('GPA') || key.includes('CGPA')) {
+                                val = val.toFixed(2);
+                            } else if (key.includes('Rate')) {
+                                val = (val * 100).toFixed(0) + '%';
+                            }
+                        }
+                        el.innerText = val;
+                    }
+                }
+
+            } catch (err) {
+                alert("Connection error to prediction service: " + err.message);
+            }
+        });
+
+        // Load Model metrics from server on page load
+        async function loadMetrics() {
+            try {
+                const response = await fetch("/api/metrics");
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.log("Metrics error: ", data.error);
+                    document.getElementById("metrics-table-body").innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted);">
+                                Models not trained yet. Run <code>python train_ews.py</code> to train classifiers.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                // Determine the best model using the same criteria (Recall, then F1)
+                let bestName = "";
+                let maxRecall = -1;
+                let maxF1 = -1;
+
+                for (const name in data) {
+                    const r = data[name].recall;
+                    const f = data[name].f1;
+                    if (r > maxRecall || (r === maxRecall && f > maxF1)) {
+                        maxRecall = r;
+                        maxF1 = f;
+                        bestName = name;
+                    }
+                }
+
+                const tbody = document.getElementById("metrics-table-body");
+                tbody.innerHTML = "";
+
+                for (const name in data) {
+                    const row = data[name];
+                    const tr = document.createElement("tr");
+                    if (name === bestName) {
+                        tr.className = "best-row";
+                    }
+                    
+                    tr.innerHTML = `
+                        <td style="font-weight: 500;">
+                            ${name}
+                            ${name === bestName ? '<span class="best-label">Best Recall</span>' : ''}
+                        </td>
+                        <td>${(row.accuracy * 100).toFixed(2)}%</td>
+                        <td>${row.precision.toFixed(4)}</td>
+                        <td style="font-weight: 600; color: ${name === bestName ? 'var(--color-medium)' : 'inherit'}">${row.recall.toFixed(4)}</td>
+                        <td>${row.f1.toFixed(4)}</td>
+                        <td>${row.roc_auc.toFixed(4)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+
+            } catch (err) {
+                console.log("Could not load metrics:", err);
+            }
+        }
+
+        // On window load
+        window.addEventListener("load", () => {
+            fetchStudents();
+            loadMetrics();
+            
+            // Automatically select first student record once loaded
+            setTimeout(async () => {
+                const firstRow = document.querySelector(".student-row");
+                if (firstRow) {
+                    const id = firstRow.id.replace("row-", "");
+                    selectStudent(id);
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
