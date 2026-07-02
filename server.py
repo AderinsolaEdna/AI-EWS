@@ -18,7 +18,7 @@ from urllib.parse import urlparse, parse_qs
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from ews_inference import predict_dropout_risk, load_assets, predict_dropout_risk_batch
 
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 
 # Global caches for student dataset and predictions
 _students_df = None

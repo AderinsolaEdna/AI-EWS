@@ -1,4 +1,4 @@
-# AI-Driven Early Warning System (EWS) for Predicting Student Dropout in Nigerian Universities
+# AI-Driven Early Warning System (EWS) for Predicting and Reducing Student Dropout in Nigerian Universities
 
 An operational, end-to-end Machine Learning pipeline and interactive dark-mode web dashboard designed to predict student dropout risk in Nigerian Universities. The system leverages machine learning classifiers (Logistic Regression, Decision Trees, Random Forests, XGBoost, and MLP Neural Networks) trained on a contextualized dataset of **4,424 student records**, applies Class Imbalance correction (SMOTE), and resolves individual student risk drivers to suggest targeted, localized institutional interventions.
 
